@@ -1,0 +1,514 @@
+homeassistant:
+#  auth_providers:
+#   - type: homeassistant
+#   - type: legacy_api_password
+  # Name of the location where Home Assistant is running
+  name: Home
+  # Location required to calculate the time the sun rises and sets
+  latitude: !secret home_latitude
+  longitude: !secret home_longitude
+  # Impacts weather/sunrise data (altitude above sea level in meters)
+  elevation: !secret home_elevation
+  # metric for Metric, imperial for Imperial
+  unit_system: metric
+  # Pick yours from here: http://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+  time_zone: America/Santiago
+  # Customization file
+  customize: !include customize.yaml
+
+# Show links to resources in log and frontend
+#introduction:
+
+# Enables the frontend
+frontend:
+   javascript_version: latest
+
+# Enable Hass.io panel
+hassio:
+
+panel_iframe:
+  configurator:
+    title: Configurador
+    icon: mdi:wrench
+    url: http://192.168.1.133:3218
+
+# Enables configuration UI
+config:
+
+
+http:
+  # Secrets are defined in the file secrets.yaml
+  api_password: !secret http_passoword
+  # Uncomment this if you are using SSL/TLS, running in Docker container, etc.
+  base_url: iot.redcasa.tk
+
+# Checks for available updates
+# Note: This component will send some information about your system to
+# the developers to assist with development of Home Assistant.
+# For more information, please see:
+# https://home-assistant.io/blog/2016/10/25/explaining-the-updater/
+updater:
+  # Optional, allows Home Assistant developers to focus on popular components.
+  include_used_components: true
+
+# Discover some devices automatically
+#discovery:
+
+# Allows you to issue voice commands from the frontend in enabled browsers
+#conversation:
+
+# Enables support for tracking state changes over time
+history:
+  include:
+    entities:
+      - sensor.consumo_piscina
+      - sensor.dormitorio_temperature
+      - sensor.sala_temperature
+
+history_graph:
+  grafico1:
+    name: Consumos
+    entities:
+      - sensor.consumo_piscina
+      - sensor.consumo_refrigerador
+    hours_to_show: 168
+
+# View all events in a logbook
+logbook:
+
+# Enables a map showing the location of tracked devices
+map:
+
+# Track the sun
+sun:
+
+ios:
+
+system_health:
+
+#camera:
+#  - platform: generic
+#    name: Living
+#    still_image_url: !secret cam2_url
+#
+#  - platform: generic
+#    name: Sala
+#    still_image_url: !secret cam3_url
+#
+#  - platform: generic
+#    name: Cocina
+#    still_image_url: !secret cam1_url
+
+# Weather prediction
+sensor:
+  - platform: yr
+
+  - platform: moon
+
+  - platform: rest
+    name: temp_stgoo
+    resource: http://archivos.meteochile.gob.cl/dmc-movil/api/v1/localidad/stgoo/pronostico
+    value_template: '{{ value_json.data[0].condicionActual.temperatura }}'
+    unit_of_measurement: "°C"
+
+  - platform: rest
+    name: now_stgoo
+    resource: http://archivos.meteochile.gob.cl/dmc-movil/api/v1/localidad/stgoo/pronostico
+    value_template: '{{ value_json.data[0].condicionActual.condicionTexto }}'
+
+  - platform: rest
+    name: temp_stgoc
+    resource: http://archivos.meteochile.gob.cl/dmc-movil/api/v1/localidad/stgoc/pronostico
+    value_template: '{{ value_json.data[0].condicionActual.temperatura }}'
+    unit_of_measurement: "°C"
+
+  - platform: rest
+    name: now_stgoc
+    resource: http://archivos.meteochile.gob.cl/dmc-movil/api/v1/localidad/stgoc/pronostico
+    value_template: '{{ value_json.data[0].condicionActual.condicionTexto }}'
+
+  - platform: template
+    sensors:
+      meteo_temp:
+        friendly_name: "Temperatura"
+        value_template: >-
+          {% if is_state('sensor.temp_stgoo', 'None') %}
+            {{ states('sensor.temp_stgoc') }}
+          {% else %}
+            {{ states('sensor.temp_stgoo') }}
+          {% endif %}
+      meteo_now:
+        friendly_name: "Condicion Actual"
+        value_template: >-
+          {% if is_state('sensor.now_stgoo', '') %}
+            {{ states('sensor.now_stgoc') }}
+          {% else %}
+            {{ states('sensor.now_stgoo') }}
+          {% endif %}
+
+  - platform: time_date
+    display_options:
+      - 'time'
+      - 'date'
+
+  - platform: systemmonitor
+    resources:
+      - type: disk_use_percent
+        arg: /
+      - type: memory_use
+      - type: swap_use
+      - type: load_1m
+      - type: load_5m
+      - type: load_15m
+
+  - platform: syncthru
+    resource: http://192.168.1.109
+    name: Samsung Laser Color
+    monitored_conditions:
+        - toner_black
+        - toner_cyan
+        - toner_magenta
+        - toner_yellow
+
+  - platform: mqtt
+    name: "Consumo Piscina"
+    state_topic: "tele/bomba/ENERGY"
+    value_template: "{{ value_json.Power }}"
+    unit_of_measurement: "W"
+
+  - platform: mqtt
+    name: "kWh Piscina"
+    state_topic: "tele/bomba/ENERGY"
+    value_template: "{{ value_json.Total }}"
+    unit_of_measurement: "kWh"
+
+  - platform: mqtt
+    name: "Ayer Piscina"
+    state_topic: "tele/bomba/ENERGY"
+    value_template: "{{ value_json.Yesterday }}"
+    unit_of_measurement: "kWh"
+
+  - platform: mqtt
+    name: "Hoy Piscina"
+    state_topic: "tele/bomba/ENERGY"
+    value_template: "{{ value_json.Today }}"
+    unit_of_measurement: "kWh"
+
+  - platform: mqtt
+    name: "Factor Piscina"
+    state_topic: "tele/bomba/ENERGY"
+    value_template: "{{ value_json.Factor }}"
+    unit_of_measurement: "%"
+
+  - platform: sql
+    queries:
+      - name: "30 dias"
+        query: "SELECT * FROM states WHERE entity_id = 'sensor.kwh_piscina' AND
+last_updated > date('now','-30 day') ORDER BY last_updated LIMIT 1;"
+        column: 'state'
+
+  - platform: sql
+    queries:
+      - name: "7 dias"
+        query: "SELECT * FROM states WHERE entity_id = 'sensor.kwh_piscina' AND
+last_updated > date('now','-7 day') ORDER BY last_updated LIMIT 1;"
+        column: 'state'
+
+  - platform: template
+    sensors:
+      consumo_30:
+        friendly_name: "Consumo 30 dias"
+        unit_of_measurement: 'kWh'
+        value_template: "{{ states('sensor.kwh_piscina') - states('sensor.30_dias')}}"
+      consumo_7:
+        friendly_name: "Consumo 7 dias"
+        unit_of_measurement: 'kWh'
+        value_template: "{{ states('sensor.kwh_piscina') - states('sensor.7_dias')}}"
+
+  - platform: mqtt
+    name: "dormitorio_temperature"
+    state_topic: "zigbee2mqtt/dormitorio"
+    availability_topic: "zigbee2mqtt/bridge/state"
+    unit_of_measurement: "°C"
+    icon: "mdi:temperature-celsius"
+    value_template: "{{ value_json.temperature }}"
+
+  - platform: mqtt
+    name: "dormitorio_humidity"
+    state_topic: "zigbee2mqtt/dormitorio"
+    availability_topic: "zigbee2mqtt/bridge/state"
+    unit_of_measurement: "%"
+    icon: "mdi:water-percent"
+    value_template: "{{ value_json.humidity }}"
+
+  - platform: mqtt
+    name: "exterior_temperature"
+    state_topic: "zigbee2mqtt/exterior"
+    availability_topic: "zigbee2mqtt/bridge/state"
+    unit_of_measurement: "°C"
+    icon: "mdi:temperature-celsius"
+    value_template: "{{ value_json.temperature }}"
+
+  - platform: mqtt
+    name: "exterior_humidity"
+    state_topic: "zigbee2mqtt/exterior"
+    availability_topic: "zigbee2mqtt/bridge/state"
+    unit_of_measurement: "%"
+    icon: "mdi:water-percent"
+    value_template: "{{ value_json.humidity }}"
+
+  - platform: mqtt
+    name: "living_temperature"
+    state_topic: "zigbee2mqtt/living"
+    availability_topic: "zigbee2mqtt/bridge/state"
+    unit_of_measurement: "°C"
+    icon: "mdi:temperature-celsius"
+    value_template: "{{ value_json.temperature }}"
+
+  - platform: mqtt
+    name: "living_humidity"
+    state_topic: "zigbee2mqtt/living"
+    availability_topic: "zigbee2mqtt/bridge/state"
+    unit_of_measurement: "%"
+    icon: "mdi:water-percent"
+    value_template: "{{ value_json.humidity }}"
+
+  - platform: mqtt
+    name: "dorm_fco_temperature"
+    state_topic: "zigbee2mqtt/dorm_fco"
+    availability_topic: "zigbee2mqtt/bridge/state"
+    unit_of_measurement: "°C"
+    icon: "mdi:temperature-celsius"
+    value_template: "{{ value_json.temperature }}"
+
+  - platform: mqtt
+    name: "dorm_fco_humidity"
+    state_topic: "zigbee2mqtt/dorm_fco"
+    availability_topic: "zigbee2mqtt/bridge/state"
+    unit_of_measurement: "%"
+    icon: "mdi:water-percent"
+    value_template: "{{ value_json.humidity }}"
+
+  - platform: mqtt
+    name: "dorm_cata_temperature"
+    state_topic: "zigbee2mqtt/dorm_cata"
+    availability_topic: "zigbee2mqtt/bridge/state"
+    unit_of_measurement: "°C"
+    icon: "mdi:temperature-celsius"
+    value_template: "{{ value_json.temperature }}"
+
+  - platform: mqtt
+    name: "dorm_cata_humidity"
+    state_topic: "zigbee2mqtt/dorm_cata"
+    availability_topic: "zigbee2mqtt/bridge/state"
+    unit_of_measurement: "%"
+    icon: "mdi:water-percent"
+    value_template: "{{ value_json.humidity }}"
+
+  - platform: mqtt
+    name: "sala_temperature"
+    state_topic: "zigbee2mqtt/sala"
+    availability_topic: "zigbee2mqtt/bridge/state"
+    unit_of_measurement: "°C"
+    icon: "mdi:temperature-celsius"
+    value_template: "{{ value_json.temperature }}"
+
+  - platform: mqtt
+    name: "sala_humidity"
+    state_topic: "zigbee2mqtt/sala"
+    availability_topic: "zigbee2mqtt/bridge/state"
+    unit_of_measurement: "%"
+    icon: "mdi:water-percent"
+    value_template: "{{ value_json.humidity }}"
+
+  - platform: mqtt
+    name: "dormitorio_battery"
+    state_topic: "zigbee2mqtt/dormitorio"
+    availability_topic: "zigbee2mqtt/bridge/state"
+    unit_of_measurement: "%"
+    icon: "mdi:battery"
+    value_template: "{{ value_json.battery }}"
+
+  - platform: mqtt
+    name: "exterior_battery"
+    state_topic: "zigbee2mqtt/exterior"
+    availability_topic: "zigbee2mqtt/bridge/state"
+    unit_of_measurement: "%"
+    icon: "mdi:battery"
+    value_template: "{{ value_json.battery }}"
+
+  - platform: mqtt
+    name: "living_battery"
+    state_topic: "zigbee2mqtt/living"
+    availability_topic: "zigbee2mqtt/bridge/state"
+    unit_of_measurement: "%"
+    icon: "mdi:battery"
+    value_template: "{{ value_json.battery }}"
+
+  - platform: mqtt
+    name: "dorm_fco_battery"
+    state_topic: "zigbee2mqtt/dorm_fco"
+    availability_topic: "zigbee2mqtt/bridge/state"
+    unit_of_measurement: "%"
+    icon: "mdi:battery"
+    value_template: "{{ value_json.battery }}"
+
+  - platform: mqtt
+    name: "dorm_cata_battery"
+    state_topic: "zigbee2mqtt/dorm_cata"
+    availability_topic: "zigbee2mqtt/bridge/state"
+    unit_of_measurement: "%"
+    icon: "mdi:battery"
+    value_template: "{{ value_json.battery }}"
+
+  - platform: mqtt
+    name: "sala_battery"
+    state_topic: "zigbee2mqtt/sala"
+    availability_topic: "zigbee2mqtt/bridge/state"
+    unit_of_measurement: "%"
+    icon: "mdi:battery"
+    value_template: "{{ value_json.battery }}"
+
+# Text to speech
+
+#tts:
+#  - platform: google
+
+# Cloud
+#cloud:
+
+group: !include groups.yaml
+
+# Mosquitto Broker in localhost
+mqtt:
+  broker: localhost
+  port: 1883
+  client_id: home-assistant-1
+  keepalive: 60
+  username: !secret mqtt_user
+  password: !secret mqtt_pass
+  protocol: 3.1
+
+light:
+  - platform: mqtt
+    name: "Hall"
+    state_topic: "stat/entrada/POWER1"
+    command_topic: "cmnd/entrada/POWER1"
+    qos: 1
+    payload_on: "ON"
+    payload_off: "OFF"
+    retain: true
+
+  - platform: mqtt
+    name: "Entrada"
+    state_topic: "stat/entrada/POWER2"
+    command_topic: "cmnd/entrada/POWER2"
+    qos: 1
+    payload_on: "ON"
+    payload_off: "OFF"
+    retain: true
+
+  - platform: mqtt
+    name: "Antejardin"
+    state_topic: "stat/entrada/POWER3"
+    command_topic: "cmnd/entrada/POWER3"
+    qos: 1
+    payload_on: "ON"
+    payload_off: "OFF"
+    retain: true
+
+  - platform: mqtt
+    name: "Jardin"
+    state_topic: "stat/luz_jardin/POWER"
+    command_topic: "cmnd/luz_jardin/POWER"
+    qos: 1
+    payload_on: "ON"
+    payload_off: "OFF"
+    retain: true
+
+switch:
+  - platform: mqtt
+    name: "Bomba Piscina"
+    state_topic: "stat/bomba/POWER"
+    command_topic: "cmnd/bomba/POWER"
+    qos: 1
+    payload_on: "ON"
+    payload_off: "OFF"
+    retain: true
+
+binary_sensor:
+  - platform: rest
+    name: station1
+    resource: !secret ospi_url
+    value_template: '{{ value_json.sn[0] }}'
+
+  - platform: rest
+    name: station2
+    resource: !secret ospi_url
+    value_template: '{{ value_json.sn[1] }}'
+
+  - platform: rest
+    name: station3
+    resource: !secret ospi_url
+    value_template: '{{ value_json.sn[2] }}'
+
+  - platform: mqtt
+    name: "Baño Invitados"
+    payload_on: "1DEFAE"
+    payload_off: "1DEFA7"
+    device_class: window
+    state_topic: "tele/rf_bridge1/RESULT"
+    value_template: '{{ value_json.RfReceived.Data }}'
+
+  - platform: mqtt
+    name: "Puerta Principal"
+    payload_on: "475BAE"
+    payload_off: "475BA7"
+    device_class: door
+    state_topic: "tele/rf_bridge1/RESULT"
+    value_template: '{{ value_json.RfReceived.Data }}'
+
+  - platform: mqtt
+    name: "Puerta Cocina"
+    payload_on: "713BAE"
+    payload_off: "713BA7"
+    device_class: door
+    state_topic: "tele/rf_bridge1/RESULT"
+    value_template: '{{ value_json.RfReceived.Data }}'
+
+  - platform: mqtt
+    name: "Baño Niños"
+    payload_on: "093BAE"
+    payload_off: "093BA7"
+    device_class: window
+    state_topic: "tele/rf_bridge1/RESULT"
+    value_template: '{{ value_json.RfReceived.Data }}'
+
+  - platform: mqtt
+    name: "Baño Principal"
+    payload_on: "66F1AE"
+    payload_off: "66F1A7"
+    device_class: window
+    state_topic: "tele/rf_bridge1/RESULT"
+    value_template: '{{ value_json.RfReceived.Data }}'
+
+  - platform: hikvision
+    host: 192.168.1.121
+    username: !secret cam1_user
+    password: !secret cam1_pass
+    name: cocina
+
+  - platform: hikvision
+    host: 192.168.1.122
+    username: !secret cam2_user
+    password: !secret cam2_pass
+    name: living
+
+  - platform: hikvision
+    host: 192.168.1.123
+    username: !secret cam3_user
+    password: !secret cam3_pass
+    name: sala
+
+automation: !include automations.yaml
+script: !include scripts.yaml

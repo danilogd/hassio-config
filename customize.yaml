@@ -1,0 +1,92 @@
+sensor.dormitorio_temperature:
+  friendly_name: Dormitorio
+  icon: mdi:thermometer
+sensor.sala_temperature:
+  friendly_name: Sala
+  icon: mdi:thermometer
+sensor.exterior_temperature:
+  friendly_name: Exterior
+  icon: mdi:thermometer
+sensor.living_temperature:
+  friendly_name: Living
+  icon: mdi:thermometer
+sensor.dorm_fco_temperature:
+  friendly_name: D. Francisco
+  icon: mdi:thermometer
+sensor.dorm_cata_temperature:
+  friendly_name: D. Catalina
+  icon: mdi:thermometer
+sensor.dormitorio_humidity:
+  friendly_name: Dormitorio
+sensor.sala_humidity:
+  friendly_name: Sala
+sensor.living_humidity:
+  friendly_name: Living
+sensor.exterior_humidity:
+  friendly_name: Exterior
+sensor.dorm_fco_humidity:
+  friendly_name: D. Francisco
+sensor.dorm_cata_humidity:
+  friendly_name: D. Catalina
+binary_sensor.entrada_button_1:
+  hidden: true
+binary_sensor.entrada_button_2:
+  hidden: true
+binary_sensor.entrada_button_3:
+  hidden: true
+switch.luz_hall:
+  icon: mdi:lightbulb
+binary_sensor.sonoff_button_1:
+  hidden: true
+sensor.wifi_signal_sensor:
+  hidden: true
+sensor.wifi_signal_sensor_2:
+  hidden: true
+sensor.temp_stgoc:
+  hidden: true
+sensor.temp_stgoo:
+  hidden: true
+light.sonoff_t1_blue_led:
+  hidden: true
+switch.luz_entrada:
+  icon: mdi:lightbulb
+switch.luz_antejardin:
+  icon: mdi:lightbulb
+binary_sensor.station1:
+  icon: mdi:fountain
+binary_sensor.station2:
+  icon: mdi:fountain
+binary_sensor.station3:
+  icon: mdi:fountain
+switch.bomba_piscina:
+  icon: mdi:engine
+sensor.30_dias:
+  hidden: true
+sensor.7_dias:
+  hidden: true
+sensor.ayer_piscina:
+  hidden: true
+sensor.consumo_30:
+  hidden: true
+sensor.consumo_7:
+  hidden: true
+sensor.consumo_piscina:
+  hidden: true
+sensor.esphome_version:
+  hidden: true
+sensor.esphome_version_2:
+  hidden: true
+sensor.hoy_piscina:
+  hidden: true
+sensor.load_15m:
+  hidden: true
+sensor.load_1m:
+  hidden: true
+sensor.load_5m:
+  hidden: true
+sensor.memory_use:
+  hidden: true
+sensor.swap_use:
+  hidden: true
+sensor.kwh_piscina:
+  hidden: true

@@ -1,0 +1,75 @@
+luces_autom:
+  entities:
+  - switch.luz_entrada
+  - switch.luz_antejardin
+  - light.jardin
+  name: Luces Exteriores
+  view: false
+
+antejardin:
+  entities:
+  - switch.sonoff_relay_1
+  - switch.sonoff_relay_1_2
+  name: Antejardin
+  view: false
+
+sensores:
+  entities:
+  - binary_sensor.bano_invitados
+  - binary_sensor.bano_ninos
+  - binary_sensor.bano_principal
+  - binary_sensor.puerta_principal
+  - binary_sensor.puerta_cocina
+  name: Puertas - Ventanas
+  view: false
+
+movimiento:
+  entities:
+  - binary_sensor.cocina_pir_alarm
+  - binary_sensor.living_pir_alarm
+  - binary_sensor.sala_pir_alarm
+  name: Sensor PIR
+  view: false
+  
+clima:
+  entities:
+  - sensor.meteo_temp
+  - sensor.meteo_now
+  name: MeteoChile
+  view: false
+
+temperatura:
+  entities:
+  - sensor.dormitorio_temperature
+  - sensor.sala_temperature
+  - sensor.exterior_temperature
+  - sensor.living_temperature
+  - sensor.dorm_fco_temperature
+  - sensor.dorm_cata_temperature
+  - sensor.dormitorio_humidity
+  - sensor.sala_humidity
+  - sensor.living_humidity
+  - sensor.exterior_humidity
+  - sensor.dorm_fco_humidity
+  - sensor.dorm_cata_humidity
+  name: Zigbee
+  view: false
+  
+baterias:
+  entities:
+  - sensor.dormitorio_battery
+  - sensor.sala_battery
+  - sensor.exterior_battery
+  - sensor.living_battery
+  - sensor.dorm_fco_battery
+  - sensor.dorm_cata_battery
+  name: Baterias
+  view: false
+  
+ospi:
+  entities:
+  - binary_sensor.station1
+  - binary_sensor.station2
+  - binary_sensor.station3
+  name: OpenSprinkler
+  view: false

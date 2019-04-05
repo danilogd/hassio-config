@@ -1,0 +1,62 @@
+- id: luz_jardin_on
+  alias: Prender Jardin en la noche
+  trigger:
+    platform: sun
+    event: sunset
+  action:
+    service: light.turn_on
+    entity_id: light.jardin
+- id: luz_jardin_off
+  alias: Apagar Jardin luego de 2 horas
+  trigger:
+    platform: sun
+    event: sunset
+    offset: 03:00:00
+  action:
+    service: light.turn_off
+    entity_id: light.jardin
+- id: luz_afuera_on
+  alias: Prender luces externas
+  trigger:
+    platform: sun
+    event: sunset
+  action:
+    service: homeassistant.turn_on
+    entity_id: group.luces_autom
+- id: luz_afuera_off
+  alias: Apagar luces externas
+  trigger:
+    platform: sun
+    event: sunrise
+  action:
+    service: homeassistant.turn_off
+    entity_id: group.luces_autom
+- id: bomba_on
+  alias: Encender la Bomba
+  trigger:
+    platform: time
+    at: '10:00:00'
+  action:
+    service: switch.turn_on
+    entity_id: switch.bomba_piscina
+- id: bomba_off
+  alias: Apagar la Bomba
+  trigger:
+  - at: '18:30:00'
+    platform: time
+  action:
+  - entity_id: switch.bomba_piscina
+    service: switch.turn_off
+- id: reset_consumo
+  alias: Reset Consumo
+  trigger:
+    platform: time
+    at: 00:00:00
+  condition:
+    condition: template
+    value_template: '{{ now().day == 22 }}'
+  action:
+    service: mqtt.publish
+    data:
+      topic: cmnd/bomba/EnergyReset
+      payload: 1
